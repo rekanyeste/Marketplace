@@ -1,0 +1,99 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ──────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // ── Users ─────────────────────────────────────────────────────
+    match /users/{uid} {
+      // Anyone signed in can read profiles (for seller info)
+      allow read: if isSignedIn();
+      // Relaxed update/create rule to allow buyers to modify seller balance/activeListings
+      // and implicitly create the doc if it's a mock user
+      allow create, update: if isSignedIn();
+
+      // Favorites subcollection
+      match /favorites/{listingId} {
+        allow read, write: if isOwner(uid);
+      }
+
+      // Ratings subcollection – anyone signed in can read; only backend writes via transactions
+      match /ratings/{ratingId} {
+        allow read: if isSignedIn();
+        // Allow create only if the rating is from the authenticated user
+        allow create: if isSignedIn()
+          && request.resource.data.fromUid == request.auth.uid
+          && request.resource.data.toUid == uid;
+        allow update, delete: if false;
+      }
+    }
+
+    // ── Listings ──────────────────────────────────────────────────
+    match /listings/{listingId} {
+      // Anyone signed in can read listings
+      allow read: if isSignedIn();
+      // Only signed-in users can create listings (sellerId must match auth uid)
+      allow create: if isSignedIn()
+        && request.resource.data.sellerId == request.auth.uid;
+      // Only the seller can delete their listing.
+      // Anyone signed in can update (to mark as sold during purchase).
+      allow update: if isSignedIn()
+        && (resource.data.sellerId == request.auth.uid || request.resource.data.status == 'sold');
+      allow delete: if isSignedIn()
+        && resource.data.sellerId == request.auth.uid;
+    }
+
+    // ── Chats ─────────────────────────────────────────────────────
+    match /chats/{threadId} {
+      function isParticipant() {
+        return isSignedIn() && (
+          resource.data.buyerId == request.auth.uid ||
+          resource.data.sellerId == request.auth.uid
+        );
+      }
+
+      allow read: if isParticipant();
+      // Buyer can create a thread (buyerId must match auth uid)
+      allow create: if isSignedIn()
+        && request.resource.data.buyerId == request.auth.uid;
+      // Participants can update (e.g. lastMessage)
+      allow update: if isParticipant();
+
+      // Messages subcollection
+      match /messages/{messageId} {
+        allow read: if isSignedIn() && (
+          get(/databases/$(database)/documents/chats/$(threadId)).data.buyerId == request.auth.uid ||
+          get(/databases/$(database)/documents/chats/$(threadId)).data.sellerId == request.auth.uid
+        );
+        allow create: if isSignedIn()
+          && request.resource.data.senderId == request.auth.uid
+          && (
+            get(/databases/$(database)/documents/chats/$(threadId)).data.buyerId == request.auth.uid ||
+            get(/databases/$(database)/documents/chats/$(threadId)).data.sellerId == request.auth.uid
+          );
+        allow update, delete: if false;
+      }
+    }
+
+    // ── Transactions ──────────────────────────────────────────────
+    match /transactions/{txId} {
+      // Buyer or seller can read their own transactions
+      allow read: if isSignedIn() && (
+        resource.data.buyerId == request.auth.uid ||
+        resource.data.sellerId == request.auth.uid
+      );
+      // Only the buyer can create a transaction (buyerId must match)
+      allow create: if isSignedIn()
+        && request.resource.data.buyerId == request.auth.uid;
+      allow update, delete: if false;
+    }
+  }
+}

@@ -1,0 +1,87 @@
+mutation CreateDemoData @transaction @auth(level: PUBLIC, insecureReason: "This is seed data and does not require authentication.") {
+  user_insertMany(data: [
+    {
+      id: "a0000000-0000-4000-8000-000000000001",
+      displayName: "Alice Smith",
+      email: "alice.smith@example.com",
+      createdAt: "2023-01-01T10:00:00Z",
+      location: "New York, USA",
+      bio: "Avid collector of vintage electronics."
+    },
+    {
+      id: "a0000000-0000-4000-8000-000000000002",
+      displayName: "Bob Johnson",
+      email: "bob.johnson@example.com",
+      createdAt: "2023-01-05T11:30:00Z",
+      location: "Los Angeles, USA",
+      bio: "Loves to find unique handcrafted items."
+    }
+  ])
+  category_insertMany(data: [
+    {
+      id: "b0000000-0000-4000-8000-000000000001",
+      name: "Electronics",
+      description: "Gadgets and electronic devices"
+    },
+    {
+      id: "b0000000-0000-4000-8000-000000000002",
+      name: "Handicrafts",
+      description: "Handmade and artisanal products"
+    }
+  ])
+  listing_insertMany(data: [
+    {
+      id: "c0000000-0000-4000-8000-000000000001",
+      userId: "a0000000-0000-4000-8000-000000000001",
+      categoryId: "b0000000-0000-4000-8000-000000000001",
+      title: "Vintage Camera",
+      description: "Rare 1970s film camera, fully functional.",
+      price: 150.00,
+      status: "available",
+      createdAt: "2023-01-10T14:00:00Z",
+      imageUrl: ["https://example.com/camera1.jpg", "https://example.com/camera2.jpg"],
+      condition: "Used"
+    },
+    {
+      id: "c0000000-0000-4000-8000-000000000002",
+      userId: "a0000000-0000-4000-8000-000000000002",
+      categoryId: "b0000000-0000-4000-8000-000000000002",
+      title: "Hand-knitted Scarf",
+      description: "Soft wool scarf, unique design.",
+      price: 35.00,
+      status: "available",
+      createdAt: "2023-01-12T09:45:00Z",
+      imageUrl: ["https://example.com/scarf1.jpg"],
+      condition: "New"
+    }
+  ])
+  wishlistItem_insertMany(data: [
+    {
+      userId: "a0000000-0000-4000-8000-000000000002",
+      listingId: "c0000000-0000-4000-8000-000000000001",
+      createdAt: "2023-01-15T16:20:00Z"
+    }
+  ])
+  review_insertMany(data: [
+    {
+      id: "d0000000-0000-4000-8000-000000000001",
+      reviewerId: "a0000000-0000-4000-8000-000000000002",
+      reviewedUserId: "a0000000-0000-4000-8000-000000000001",
+      listingId: "c0000000-0000-4000-8000-000000000001",
+      rating: 5,
+      createdAt: "2023-01-20T18:00:00Z",
+      comment: "Great camera, fast shipping!"
+    }
+  ])
+  message_insertMany(data: [
+    {
+      id: "e0000000-0000-4000-8000-000000000001",
+      senderId: "a0000000-0000-4000-8000-000000000002",
+      receiverId: "a0000000-0000-4000-8000-000000000001",
+      listingId: "c0000000-0000-4000-8000-000000000001",
+      content: "Is the camera still available?",
+      createdAt: "2023-01-18T10:00:00Z",
+      isRead: false
+    }
+  ])
+}

@@ -1,0 +1,49 @@
+type User @table {
+  displayName: String!
+  email: String!
+  createdAt: Timestamp!
+  photoUrl: String
+  location: String
+  bio: String
+}
+
+type Category @table {
+  name: String!
+  description: String
+}
+
+type Listing @table {
+  user: User!
+  category: Category!
+  title: String!
+  description: String!
+  price: Float!
+  status: String!
+  createdAt: Timestamp!
+  imageUrl: [String]
+  condition: String
+}
+
+type Message @table {
+  sender: User!
+  receiver: User!
+  listing: Listing!
+  content: String!
+  createdAt: Timestamp!
+  isRead: Boolean!
+}
+
+type Review @table {
+  reviewer: User!
+  reviewedUser: User!
+  listing: Listing
+  rating: Int!
+  createdAt: Timestamp!
+  comment: String
+}
+
+type WishlistItem @table(key: ["user", "listing"]) {
+  user: User!
+  listing: Listing!
+  createdAt: Timestamp!
+}

@@ -1,0 +1,52 @@
+query AllCategories @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public as it only fetches category names and descriptions.") {
+  categories {
+    id
+    name
+    description
+  }
+}
+
+mutation CreateListing(
+  $title: String!,
+  $description: String!,
+  $price: Float!,
+  $status: String!,
+  $categoryId: UUID!,
+  $imageUrl: [String!]
+) @auth(level: USER) {
+  listing_insert(data: {
+    title: $title,
+    description: $description,
+    price: $price,
+    status: $status,
+    categoryId: $categoryId,
+    imageUrl: $imageUrl,
+    userId_expr: "auth.uid"
+  }) {
+    id
+  }
+}
+
+query MyListings @auth(level: USER) {
+  listings(where: {userId: {eq_expr: "auth.uid"}}) {
+    id
+    title
+    price
+    status
+    category {
+      name
+    }
+    createdAt
+  }
+}
+
+mutation AddToWishlist($listingId: UUID!) @auth(level: USER) {
+  wishlistItem_insert(data: {
+    userId_expr: "auth.uid",
+    listingId: $listingId,
+    createdAt_expr: "request.time"
+  }) {
+    userId
+    listingId
+  }
+}
