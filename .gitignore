@@ -1,0 +1,19 @@
+# Claude Code memory & settings — must never leak
+.claude/
+
+# Flutter / Dart generated artifacts (would otherwise pollute the repo from git root)
+.dart_tool/
+.flutter-plugins-dependencies
+build/
+
+# Common sensitive patterns — safeguard even if accidentally placed at git root
+*.env
+*.env.local
+*.key
+*.pem
+*.p8
+*.p12
+google-services.json
+GoogleService-Info.plist
+firebase_options.dart
+service-account*.json
